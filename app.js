@@ -1,5 +1,6 @@
 import 'babel-polyfill'
 
+var url;
 var news;
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -7,24 +8,29 @@ document.addEventListener('DOMContentLoaded', () => {
     var search = document.getElementById('search');
 
     search.addEventListener('keyup', (event) => {
-        // console.log(event)/
+        updateUrl(search.value);
         if (event.key == 'Enter') {
-            getNews(search.value)
+            getNews()
         }
     });
-    getNews('iraq')
+    updateUrl('iraq');
+    getNews()
 });
 
-async function getNews(query) {
-    var response = await fetch(`https://newsapi.org/v2/everything?q=${query}&apiKey=978d6c3818ff431b8c210ae86550fb1f`);
+async function getNews() {
+    var response = await fetch(url);
     var content = await response.json();
     news.innerHTML = '';
     content.articles.forEach(addArticle);
 }
 
+function updateUrl(query) {
+    url = `https://newsapi.org/v2/everything?q=${query}&apiKey=978d6c3818ff431b8c210ae86550fb1f`
+}
 
 function addArticle(article, i) {
-    article.counter = 1;
+    if (i === 0) console.log(article);
+    article.counter = localStorage.getItem(article.title) || 0;
     var articleElement = document.createElement('article');
     articleElement.id = i;
     {
@@ -61,21 +67,24 @@ function addArticle(article, i) {
             var imgUpElement = document.createElement('img');
             imgUpElement.width = 13;
             imgUpElement.height = 13;
-            imgUpElement.src = require('./assets/upVote.svg');
-            imgUpElement.addEventListener('click', () =>
-                divCounterElement.innerText = ++article.counter);
+            imgUpElement.src = require('./assets/upvote.svg');
+            imgUpElement.addEventListener('click', () => {
+                divCounterElement.innerText = ++article.counter;
+                localStorage.setItem(article.title, article.counter);
+            });
 
             var imgDownElement = document.createElement('img');
             imgDownElement.width = 13;
             imgDownElement.height = 13;
             imgDownElement.src = require('./assets/downvote.svg');
-            imgDownElement.addEventListener('click', () =>
-                divCounterElement.innerText = --article.counter);
+            imgDownElement.addEventListener('click', () => {
+                divCounterElement.innerText = --article.counter;
+                localStorage.setItem(article.title, article.counter);
+            });
 
             divVoterElement.appendChild(imgUpElement);
             divVoterElement.appendChild(divCounterElement);
             divVoterElement.appendChild(imgDownElement);
-            imgUpElement.onclick = () => console.log(article.counter);
         }
     }
     articleElement.appendChild(imgElement);
